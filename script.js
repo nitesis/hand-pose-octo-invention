@@ -35,13 +35,36 @@ function draw() {
         }
     }
 }
-
 function getPose(landmarks) {
-    // Eine einfache Logik zur Bestimmung der Pose
-    // Zum Beispiel: Überprüfe die Position von Handgelenk und Finger
-    if (landmarks[0][0] < width / 2) {
-        return "one";  // Pose "one" wenn Hand links
+    let raisedFingers = 0;
+
+    // Überprüfe, ob der Zeigefinger gehoben ist
+    if (landmarks[8][1] < landmarks[6][1]) { // Zeigefinger Spitze ist höher als Mittelgelenk
+        raisedFingers++;
+    }
+
+    // Überprüfe, ob der Mittelfinger gehoben ist
+    if (landmarks[12][1] < landmarks[10][1]) { // Mittelfinger Spitze ist höher als Mittelgelenk
+        raisedFingers++;
+    }
+
+    // Bestimme die Pose basierend auf der Anzahl der gehobenen Finger
+    if (raisedFingers === 1) {
+        return "one";  // Zeigefinger ist gehoben (Pose "one")
+    } else if (raisedFingers === 2) {
+        return "two";  // Zeige- und Mittelfinger sind gehoben (Pose "two")
     } else {
-        return "two";  // Pose "two" wenn Hand rechts
+        return "none";  // Keine Pose oder andere Pose
     }
 }
+
+
+// function getPose(landmarks) {
+//     // Eine einfache Logik zur Bestimmung der Pose
+//     // Zum Beispiel: Überprüfe die Position von Handgelenk und Finger
+//     if (landmarks[0][0] < width / 2) {
+//         return "one";  // Pose "one" wenn Hand links
+//     } else {
+//         return "two";  // Pose "two" wenn Hand rechts
+//     }
+// }
