@@ -14,16 +14,24 @@ async function setup() {
     model = await handpose.load('my_model/model.json');
     detect();
 
-    // Erzeuge zufällige Rechtecke
-    for (let i = 0; i < 20; i++) {
-        rectangles.push({
-            x: random(width),
-            y: random(height),
-            w: random(20, 50),
-            h: random(20, 50),
-            speed: random(2, 5)
-        });
-    }
+    video.elt.onloadeddata = () => {
+        console.log("Video geladen, starte Handpose-Erkennung...");
+        detect();
+    };
+
+    // // Rechtecke starten in der Mitte und fliegen in zufällige Richtungen
+    // for (let i = 0; i < 20; i++) {
+    //     let angle = random(TWO_PI);  // Zufälliger Winkel
+    //     rectangles.push({
+    //         x: width / 2,
+    //         y: height / 2,
+    //         w: random(20, 50),
+    //         h: random(20, 50),
+    //         speed: random(2, 5),
+    //         dirX: cos(angle), // Zufällige Richtung
+    //         dirY: sin(angle)  
+    //     });
+    // }
 }
 
 async function detect() {
@@ -41,29 +49,31 @@ function draw() {
 
         if (hand.landmarks.length > 0) {
             let pose = getPose(hand.landmarks);  // Bestimme die Pose (1 oder 2)
-
-            // if (pose === "one") {
-            //     background(0, 0, 255);  // Blau bei Pose "one"
-            // } else if (pose === "two") {
-            //     background(255, 0, 0);  // Rot bei Pose "two"
-            // }
         }
     }
     moveRectangles();
     drawRectangles();
+    spawnNewRectangles();  // Ständig neue Rechtecke erzeugen
 }
 
 function moveRectangles() {
-    for (let rect of rectangles) {
+    for (let i = rectangles.length - 1; i >= 0; i--) {  // `let i` hinzufügen
+        let box = rectangles[i];
+        
         if (pose === "one") {
             // Rechtecke bleiben stehen
         } else if (pose === "two") {
-            // Bewegung von der Mitte zu den Rändern
-            rect.x += rect.x > width / 2 ? rect.speed : -rect.speed;
+           // Mehr horizontale Bewegung, weniger vertikale Bewegung
+           box.x += box.dirX * box.speed * 1.5;  // Stärker nach links/rechts
+           box.y += box.dirY * box.speed * 0.3;  // Weniger nach oben/unten
         } else {
-            // Standard: zufliegende Bewegung
-            rect.x += (width / 2 - rect.x) * 0.05;
-            rect.y += (height / 2 - rect.y) * 0.05;
+            // Standard-Bewegung (gleichmäßig nach außen)
+            box.x += box.dirX * box.speed;
+            box.y += box.dirY * box.speed;
+        }
+        // Entferne Rechtecke, wenn sie aus dem Bild fliegen
+        if (box.x < -50 || box.x > width + 50 || box.y < -50 || box.y > height + 50) {
+            rectangles.splice(i, 1);
         }
     }
 }
@@ -77,6 +87,21 @@ function drawRectangles() {
     }
 }
 
+// Funktion, um neue Rechtecke zu erzeugen
+function spawnNewRectangles() {
+    if (frameCount % 10 === 0) {  // Alle 10 Frames ein neues Rechteck
+        let angle = random(TWO_PI);
+        rectangles.push({
+            x: width / 2,
+            y: height / 2,
+            w: random(20, 50),
+            h: random(20, 50),
+            speed: random(2, 5),
+            dirX: cos(angle),
+            dirY: sin(angle)
+        });
+    }
+}
 
 function getPose(landmarks) {
     let raisedFingers = 0;
