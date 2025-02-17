@@ -89,7 +89,7 @@ function drawRectangles() {
 
 // Funktion, um neue Rechtecke zu erzeugen
 function spawnNewRectangles() {
-    if (frameCount % 5 === 0) {  // Alle 5 Frames ein neues Rechteck
+    if (frameCount % 1 === 0) {  // Jeden Frames ein neues Rechteck
         let angle = random(TWO_PI);
         rectangles.push({
             x: width / 2,
