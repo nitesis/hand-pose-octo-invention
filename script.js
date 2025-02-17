@@ -20,20 +20,6 @@ async function setup() {
         console.log("Video geladen, starte Handpose-Erkennung...");
         detect();
     };
-
-    // // Rechtecke starten in der Mitte und fliegen in zufällige Richtungen
-    // for (let i = 0; i < 20; i++) {
-    //     let angle = random(TWO_PI);  // Zufälliger Winkel
-    //     rectangles.push({
-    //         x: width / 2,
-    //         y: height / 2,
-    //         w: random(20, 50),
-    //         h: random(20, 50),
-    //         speed: random(2, 5),
-    //         dirX: cos(angle), // Zufällige Richtung
-    //         dirY: sin(angle)  
-    //     });
-    // }
 }
 
 async function detect() {
