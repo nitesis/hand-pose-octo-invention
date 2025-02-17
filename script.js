@@ -103,15 +103,6 @@ function spawnNewRectangles() {
     }
 }
 
-// Zeigt die Wahrscheinlichkeit der Pose an
-// function displayPoseConfidence() {
-//     fill(255);
-//     textSize(16);
-//     text(`Pose: ${pose} (${(poseConfidence * 100).toFixed(1)}%)`, 10, height - 20);
-
-//     console.log(`Pose: ${pose}, Wahrscheinlichkeit: ${(poseConfidence * 100).toFixed(1)}%`);
-// }
-
 function displayPoseConfidence() {
     // Aktualisiere das HTML-Element mit der Pose und der Wahrscheinlichkeit
     let poseConfidenceText = `Pose: ${pose} (${(poseConfidence * 100).toFixed(1)}%)`;
