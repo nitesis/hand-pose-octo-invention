@@ -3,6 +3,8 @@ let video;
 let predictions = [];
 let rectangles = [];
 let pose = "none";
+let poseConfidence = 0;  // Stelle sicher, dass poseConfidence initialisiert wird
+
 
 async function setup() {
     createCanvas(640, 480);
@@ -36,9 +38,20 @@ async function setup() {
 
 async function detect() {
     if (video.elt.readyState === 4) {  // Prüfe, ob das Video bereit ist
-        predictions = await model.estimateHands(video.elt);
+        let hands = await model.estimateHands(video.elt);
+        
+        if (hands.length > 0) {
+            let hand = hands[0];
+            let landmarks = hand.landmarks;
+
+            pose = getPose(landmarks);
+            poseConfidence = hand.handInViewConfidence;  // Modell-Confidence speichern
+        } else {
+            pose = "none";
+            poseConfidence = 0;
+        }
     }
-    requestAnimationFrame(detect);  // Ständige Aktualisierung
+    requestAnimationFrame(detect);
 }
 function draw() {
     video.loadPixels();  // Aktualisiere das Videobild
@@ -54,6 +67,7 @@ function draw() {
     moveRectangles();
     drawRectangles();
     spawnNewRectangles();  // Ständig neue Rechtecke erzeugen
+    displayPoseConfidence();  // Zeigt die Wahrscheinlichkeit an
 }
 
 function moveRectangles() {
@@ -101,6 +115,21 @@ function spawnNewRectangles() {
             dirY: sin(angle)
         });
     }
+}
+
+// Zeigt die Wahrscheinlichkeit der Pose an
+// function displayPoseConfidence() {
+//     fill(255);
+//     textSize(16);
+//     text(`Pose: ${pose} (${(poseConfidence * 100).toFixed(1)}%)`, 10, height - 20);
+
+//     console.log(`Pose: ${pose}, Wahrscheinlichkeit: ${(poseConfidence * 100).toFixed(1)}%`);
+// }
+
+function displayPoseConfidence() {
+    // Aktualisiere das HTML-Element mit der Pose und der Wahrscheinlichkeit
+    let poseConfidenceText = `Pose: ${pose} (${(poseConfidence * 100).toFixed(1)}%)`;
+    document.getElementById('pose-confidence').textContent = poseConfidenceText;
 }
 
 function getPose(landmarks) {
