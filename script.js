@@ -96,7 +96,7 @@ function spawnNewRectangles() {
             y: height / 2,
             w: random(20, 50),
             h: random(20, 50),
-            speed: random(2, 5),
+            speed: random(5, 10), // Geschwindigkeit der Rechtecke
             dirX: cos(angle),
             dirY: sin(angle)
         });
