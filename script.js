@@ -79,8 +79,13 @@ function moveRectangles() {
 }
 
 function drawRectangles() {
-    fill(255, 0, 0);
-    noStroke();
+    // fill(255, 0, 0);
+    // noStroke();
+    noFill();  // Entfernt die Füllung
+    stroke(0); // Setzt die Farbe des Randes auf schwarz
+    strokeWeight(2); // Setzt die Strichstärke auf 3 (kann angepasst werden)
+
+
     for (let box of rectangles) {
         rectMode(CENTER);
         rect(box.x, box.y, box.w, box.h);
