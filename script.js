@@ -57,14 +57,3 @@ function getPose(landmarks) {
         return "none";  // Keine Pose oder andere Pose
     }
 }
-
-
-// function getPose(landmarks) {
-//     // Eine einfache Logik zur Bestimmung der Pose
-//     // Zum Beispiel: Überprüfe die Position von Handgelenk und Finger
-//     if (landmarks[0][0] < width / 2) {
-//         return "one";  // Pose "one" wenn Hand links
-//     } else {
-//         return "two";  // Pose "two" wenn Hand rechts
-//     }
-// }
