@@ -4,13 +4,48 @@ let predictions = [];
 let rectangles = [];
 let pose = "none";
 let poseConfidence = 0;  // Stelle sicher, dass poseConfidence initialisiert wird
+// let mainCanvas;
+// let leftCanvas;
+// let rightCanvas;
 
+// Function for first canvas
+async function sketch1(p) {
+    p.setup = function () {
+      console.log("Sketch 1 läuft!");
+      let cnv1 = p.createCanvas(640, 480);
+      cnv1.parent("canvas1");
+      p.background(0);
+    };
+    // p.draw = function () {
+    //   p.circle(p.mouseX, p.mouseY, 50);
+    // };
 
-async function setup() {
-    createCanvas(640, 480);
-    video = createCapture(VIDEO);
-    video.size(width, height);
-    video.hide();
+    // Funktion, die die Rechtecke zeichnet
+    p.draw = function () {
+        p.background(255); // Hintergrund regelmäßig aktualisieren
+        moveRectangles();
+        drawRectangles(p);
+        spawnNewRectangles();  // Ständig neue Rechtecke erzeugen
+        displayPoseConfidence();  // Zeigt die Wahrscheinlichkeit an
+    };
+}
+  
+// Run first p5 instance
+new p5(sketch1);
+
+async function sketch2(p) {
+    p.setup = function () {
+        // Video nur einmal erstellen
+        if (!video) {
+            video = p.createCapture(p.VIDEO);
+            video.size(640, 480);
+            video.parent("canvas2"); // Video direkt in #canvas2 platzieren
+        }
+    };
+
+    p.draw = function () {
+        // Hier nichts zeichnen, weil kein zusätzliches Canvas erzeugt wird
+    };
 
     // Lade das Handpose-Modell
     model = await handpose.load('my_model/model.json');
@@ -21,6 +56,40 @@ async function setup() {
         detect();
     };
 }
+
+// // Function for second canvas
+// async function sketch2(p) {
+//     p.setup = function () {
+//         let cnv2 = p.createCanvas(640, 480);
+//         cnv2.parent("canvas2");
+        
+//         // Webcam-Video laden
+//         video = p.createCapture(p.VIDEO);
+//         video.size(640, 480);
+//         video.parent("canvas2");  // Weise das Video explizit canvas2 zu (soll kleines Canvas verhindern :-/)
+//         video.hide(); // Verstecke das HTML-Element, da wir es manuell zeichnen
+
+//         p.background(255);
+//     };
+//     p.draw = function () {
+//         p.image(video, 0, 0, p.width, p.height); // Video auf Canvas zeichnen
+//         // p.fill(255, 0, 0, 100);
+//         p.noStroke();
+//         // p.square(p.mouseX, p.mouseY, 50);
+//     };
+
+//    // Lade das Handpose-Modell
+//     model = await handpose.load('my_model/model.json');
+//     detect();
+
+//     video.elt.onloadeddata = () => {
+//         console.log("Video geladen, starte Handpose-Erkennung...");
+//         detect();
+//     };
+// }
+
+// Start second p5 instance with webcam
+new p5(sketch2);
 
 async function detect() {
     if (video.elt.readyState === 4) {  // Prüfe, ob das Video bereit ist
@@ -78,19 +147,31 @@ function moveRectangles() {
     }
 }
 
-function drawRectangles() {
+function drawRectangles(p) { // p als Parameter hinzufügen
     // fill(255, 0, 0);
     // noStroke();
     noFill();  // Entfernt die Füllung
     stroke(0); // Setzt die Farbe des Randes auf schwarz
     strokeWeight(2); // Setzt die Strichstärke auf 3 (kann angepasst werden)
-
-
     for (let box of rectangles) {
-        rectMode(CENTER);
-        rect(box.x, box.y, box.w, box.h);
+        p.rectMode(p.CENTER);
+        p.rect(box.x, box.y, box.w, box.h);
     }
 }
+
+// function drawRectangles() {
+//     // fill(255, 0, 0);
+//     // noStroke();
+//     noFill();  // Entfernt die Füllung
+//     stroke(0); // Setzt die Farbe des Randes auf schwarz
+//     strokeWeight(2); // Setzt die Strichstärke auf 3 (kann angepasst werden)
+
+
+//     for (let box of rectangles) {
+//         rectMode(CENTER);
+//         rect(box.x, box.y, box.w, box.h);
+//     }
+// }
 
 // Funktion, um neue Rechtecke zu erzeugen
 function spawnNewRectangles() {
