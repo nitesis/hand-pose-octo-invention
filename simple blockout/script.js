@@ -11,6 +11,7 @@ let notes = [
 
 // Neue globale Variable für die vorherige Position des Zeigefingers
 let prevIndexX = null;
+let showText = false; // Zustand, ob der Text angezeigt werden soll
 
 function preload() {
     // Load the handpose model
@@ -76,7 +77,8 @@ function draw() {
 
                 // Bewegungslogik für den Zeigefinger
                 if (prevIndexX !== null && keypoint.x > prevIndexX + 10) { // Bewegung nach rechts (Schwelle von 10 Pixeln)
-                    displayText = "From left to right";
+                    // displayText = "From left to right";
+                    showText = true; // Einmalige Aktivierung des Textes 
                 }
                 prevIndexX = keypoint.x; // Aktuelle Position speichern
 
@@ -89,12 +91,36 @@ function draw() {
         }
     }
 
-    // Text auf dem Canvas anzeigen
-    if (displayText !== "") {
-        fill(255);
+    // // Text auf dem Canvas anzeigen
+    // if (displayText !== "") {
+    // Text dauerhaft anzeigen, sobald showText true ist
+    // if (showText) {
+
+    // Text anzeigen: Entweder temporär (bei Bewegung) oder dauerhaft (wenn showText true ist)
+    // if (showText) {
+    //     fill(255);
+    //     textSize(32);
+    //     textAlign(CENTER, CENTER);
+    //     text("From left to right", width / 2, height / 2);
+    // }
+    // Text mit schwarzem Hintergrund anzeigen, sobald showText true ist
+    if (showText) {
         textSize(32);
         textAlign(CENTER, CENTER);
-        text(displayText, width / 2, height / 2);
+        
+        // Schwarzes Rechteck als Hintergrund
+        let textStr = "From left to right";
+        let textW = textWidth(textStr); // Breite des Textes
+        let textH = textSize(); // Höhe des Textes (basierend auf textSize)
+        let padding = 10; // Abstand um den Text herum
+        
+        fill(0); // Schwarz
+        rectMode(CENTER);
+        rect(width / 2, height / 2, textW + padding * 2, textH + padding * 2);
+
+        // Weißer Text darüber
+        fill(255); // Weiß
+        text(textStr, width / 2, height / 2);
     }
 }
 
