@@ -12,8 +12,9 @@ let notes = [
 let prevIndexX = null; // Neue globale Variable für die vorherige Position des Zeigefingers
 let showText = false; // Zustand, ob der Text angezeigt werden soll
 let startX = null; // Startposition der Bewegung
-let totalDistance = 0; // Gesamte zurückgelegte Distanz
-const minDistance = 50; // Mindestdistanz für die Textanzeige (in Pixeln)
+// let totalDistance = 0; // Gesamte zurückgelegte Distanz
+// const minDistance = 50; // Mindestdistanz für die Textanzeige (in Pixeln)
+// let movingRight = false; // Zeigt an, ob Bewegung nach rechts aktiv ist
 
 function preload() {
     // Load the handpose model
@@ -57,50 +58,35 @@ function gotHands(results) {
 }
 
 function draw() {
-    // Mirror the video horizontally
-    push(); // Save the current state of the drawing
-    translate(width, 0); // Move the origin to the right edge of the canvas
-    scale(-1, 1); // Invert the x-axis
-    image(video, 0, 0, width, height); // Draw the video
-    pop(); // Restore the previous state of the drawing
+    push();
+    translate(width, 0);
+    scale(-1, 1);
+    image(video, 0, 0, width, height);
+    pop();
 
-    let displayText = ""; // Variable für den anzuzeigenden Text
+    let currentIndexX = null;
 
-    // Draw all the tracked hand points
     for (let i = 0; i < hands.length; i++) {
         let hand = hands[i];
-
         for (let j = 0; j < hand.keypoints.length; j++) {
             let keypoint = hand.keypoints[j];
-
-            if (hand.keypoints[j].name === "index_finger_tip") {
-                fill (255);
+            if (keypoint.name === "index_finger_tip") {
+                fill(255);
                 circle(keypoint.x, keypoint.y, 20);
+                currentIndexX = keypoint.x;
 
-                // Bewegungslogik für den Zeigefinger
-                if (prevIndexX !== null) {
+                // Bewegungslogik
+                if (prevIndexX === null) {
+                    // Erste Erkennung des Fingers
+                    startX = keypoint.x;
+                } else {
                     let deltaX = keypoint.x - prevIndexX;
-
-                    // Wenn Bewegung nach rechts (deltaX > 0)
-                    if (deltaX > 0) {
-                        if (startX === null) {
-                            startX = prevIndexX; // Startposition festlegen
-                        }
-                        totalDistance = keypoint.x - startX; // Gesamtdistanz berechnen
-
-                        // Text anzeigen, wenn Mindestdistanz erreicht
-                        if (totalDistance >= minDistance) {
-                            showText = true;
-                        }
-                    } else {
-                        // Bewegung in andere Richtung: Zurücksetzen
-                        startX = null;
-                        totalDistance = 0;
+                    if (deltaX > 0 && startX !== null) {
+                        showText = true; // Text bleibt dauerhaft, sobald Bewegung nach rechts beginnt
                     }
                 }
-                prevIndexX = keypoint.x; // Aktuelle Position speichern
-
-                playSound(keypoint.x, keypoint.y); // Sound bleibt erhalten
+                prevIndexX = keypoint.x;
+                playSound(keypoint.x, keypoint.y);
             } else {
                 fill(234, 125, 255, 200);
                 noStroke();
@@ -109,36 +95,30 @@ function draw() {
         }
     }
 
-    // // Text auf dem Canvas anzeigen
-    // if (displayText !== "") {
-    // Text dauerhaft anzeigen, sobald showText true ist
-    // if (showText) {
-
-    // Text anzeigen: Entweder temporär (bei Bewegung) oder dauerhaft (wenn showText true ist)
-    // if (showText) {
-    //     fill(255);
-    //     textSize(32);
-    //     textAlign(CENTER, CENTER);
-    //     text("From left to right", width / 2, height / 2);
-    // }
-    // Text mit schwarzem Hintergrund anzeigen, sobald showText true ist
-    if (showText) {
+    // Text und Hintergrund zeichnen
+    if (currentIndexX !== null && startX !== null) {
         textSize(32);
-        textAlign(CENTER, CENTER);
-        
-        // Schwarzes Rechteck als Hintergrund
+        textAlign(LEFT, CENTER); // Links ausgerichtet für natürliche Enthüllung
         let textStr = "From left to right";
-        let textW = textWidth(textStr); // Breite des Textes
-        let textH = textSize(); // Höhe des Textes (basierend auf textSize)
-        let padding = 10; // Abstand um den Text herum
-        
-        fill(0); // Schwarz
-        rectMode(CENTER);
-        rect(width / 2, height / 2, textW + padding * 2, textH + padding * 2);
+        let textW = textWidth(textStr);
+        let textH = 32; // textSize()
+        let padding = 10;
+        let textX = startX; // Text startet bei der ersten Fingerposition
+        let textY = height / 2;
 
-        // Weißer Text darüber
-        fill(255); // Weiß
-        text(textStr, width / 2, height / 2);
+        // Berechne die Breite des sichtbaren Bereichs links vom Finger
+        let revealWidth = constrain(currentIndexX - startX, 0, textW + padding * 2);
+
+        // Schwarzer Hintergrund
+        fill(0);
+        rectMode(CORNER);
+        rect(textX - padding, textY - textH / 2 - padding, revealWidth, textH + padding * 2);
+
+        // Weißer Text
+        fill(255);
+        let visibleChars = Math.floor(map(revealWidth, 0, textW + padding * 2, 0, textStr.length));
+        let visibleText = textStr.substring(0, visibleChars);
+        text(visibleText, textX, textY);
     }
 }
 
