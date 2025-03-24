@@ -9,9 +9,11 @@ let notes = [
             1046.50, 1174.66, 1318.51, 1396.91, 1567.98, 1760.00, 1975.53, 2093.00 // Octave 3 (C6 - C7)
 ];
 
-// Neue globale Variable für die vorherige Position des Zeigefingers
-let prevIndexX = null;
+let prevIndexX = null; // Neue globale Variable für die vorherige Position des Zeigefingers
 let showText = false; // Zustand, ob der Text angezeigt werden soll
+let startX = null; // Startposition der Bewegung
+let totalDistance = 0; // Gesamte zurückgelegte Distanz
+const minDistance = 50; // Mindestdistanz für die Textanzeige (in Pixeln)
 
 function preload() {
     // Load the handpose model
@@ -76,9 +78,25 @@ function draw() {
                 circle(keypoint.x, keypoint.y, 20);
 
                 // Bewegungslogik für den Zeigefinger
-                if (prevIndexX !== null && keypoint.x > prevIndexX + 10) { // Bewegung nach rechts (Schwelle von 10 Pixeln)
-                    // displayText = "From left to right";
-                    showText = true; // Einmalige Aktivierung des Textes 
+                if (prevIndexX !== null) {
+                    let deltaX = keypoint.x - prevIndexX;
+
+                    // Wenn Bewegung nach rechts (deltaX > 0)
+                    if (deltaX > 0) {
+                        if (startX === null) {
+                            startX = prevIndexX; // Startposition festlegen
+                        }
+                        totalDistance = keypoint.x - startX; // Gesamtdistanz berechnen
+
+                        // Text anzeigen, wenn Mindestdistanz erreicht
+                        if (totalDistance >= minDistance) {
+                            showText = true;
+                        }
+                    } else {
+                        // Bewegung in andere Richtung: Zurücksetzen
+                        startX = null;
+                        totalDistance = 0;
+                    }
                 }
                 prevIndexX = keypoint.x; // Aktuelle Position speichern
 
