@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bouncing Circles with Sound</title>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.9.2/lib/p5.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.9.2/lib/addons/p5.sound.js"></script>
+</head>
+<body>
+    <div id="canvas1"></div>
+    <p>Klicke ins Canvas, um den Sound zu aktivieren!</p>
+    <script>
+        let circles = [];
+        let bounceSound;
+        let soundActivated = false;
+
+        function sketch(p) {
+            p.setup = function() {
+                p.createCanvas(640, 480).parent("canvas1");
+                // Verwende einen eingebauten p5.js-Sound als Fallback
+                bounceSound = new p5.Oscillator('sine');
+                bounceSound.freq(440);
+                bounceSound.amp(0);
+                bounceSound.start();
+                for (let i = 0; i < 5; i++) {
+                    circles.push(new MovingCircle(
+                        p.random(p.width),
+                        p.random(p.height),
+                        p
+                    ));
+                }
+            };
+
+            p.draw = function() {
+                p.background(125);
+                circles.forEach(circle => {
+                    circle.move();
+                    circle.checkEdges();
+                    circle.display();
+                });
+            };
+
+            p.mousePressed = function() {
+                if (p.mouseX >= 0 && p.mouseX <= p.width && 
+                    p.mouseY >= 0 && p.mouseY <= p.height) {
+                    if (!soundActivated) {
+                        bounceSound.start();
+                        soundActivated = true;
+                        console.log("Sound aktiviert");
+                    }
+                }
+            };
+        }
+
+        class MovingCircle {
+            constructor(x, y, p) {
+                this.p = p;
+                this.x = x;
+                this.y = y;
+                this.diameter = 40;
+                this.xSpeed = p.random(-3, 3);
+                this.ySpeed = p.random(-3, 3);
+                this.wasEdgeHit = false;
+            }
+
+            move() {
+                this.x += this.xSpeed;
+                this.y += this.ySpeed;
+            }
+
+            checkEdges() {
+                let hitEdge = false;
+                
+                if (this.x - this.diameter/2 <= 0 || 
+                    this.x + this.diameter/2 >= this.p.width) {
+                    this.xSpeed *= -1;
+                    hitEdge = true;
+                }
+                
+                if (this.y - this.diameter/2 <= 0 || 
+                    this.y + this.diameter/2 >= this.p.height) {
+                    this.ySpeed *= -1;
+                    hitEdge = true;
+                }
+
+                if (hitEdge && !this.wasEdgeHit && soundActivated) {
+                    bounceSound.amp(0.5, 0.1); // Lautstärke für 0.1 Sekunden
+                    setTimeout(() => bounceSound.amp(0, 0.1), 100);
+                }
+                this.wasEdgeHit = hitEdge;
+            }
+
+            display() {
+                this.p.fill(0, 100, 255);
+                this.p.ellipse(this.x, this.y, this.diameter);
+            }
+        }
+
+        new p5(sketch);
+    </script>
+</body>
+</html>
