@@ -29,6 +29,168 @@
       587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50
     ];
 
+    function setup () {
+      createCanvas(640, 480);
+
+      // Webcam + Handpose Setup
+      video = createCapture(VIDEO);
+      video.size(width, height);
+      video.hide();
+
+      handpose = ml5.handpose(video, () => {
+        console.log("🤚 Handpose geladen");
+      });
+
+      handpose.on("predict", (results) => {
+        predictions = results;
+      });
+
+      // Oszillator vorbereiten
+      osc = new p5.Oscillator('sine');
+      osc.amp(0); // Start bei 0 Lautstärke
+
+      // Sound aktivieren durch Button
+      document.getElementById("soundButton").addEventListener("click", () => {
+        userStartAudio();
+        if (!soundEnabled) {
+          osc.start();
+          soundEnabled = true;
+          console.log("🔊 Sound gestartet");
+        }
+      });
+
+      // Kreise erzeugen
+      for (let i = 0; i < 5; i++) {
+        circles.push(new MovingCircle(random(width), random(height)));
+      }
+    }
+
+    function draw() {
+      background(220);
+
+      // Fingerposition bestimmen (Zeigefingerspitze)
+      let fingerX = null;
+      let fingerY = null;
+
+      if (predictions.length > 0) {
+        const hand = predictions[0];
+        const indexTip = hand.landmarks[8];
+        fingerX = indexTip[0];
+        fingerY = indexTip[1];
+
+        fill(255, 0, 100);
+        noStroke();
+        ellipse(fingerX, fingerY, 20);
+      }
+
+      // Kreise bewegen und checken
+      let edgeHit = false;
+      for (let c of circles) {
+        c.move();
+        if (c.checkEdges(fingerX, fingerY)) {
+          edgeHit = true;
+        }
+        c.display();
+      }
+
+      // Sound nur bei Randberührung
+      if (!edgeHit && soundEnabled) {
+        osc.amp(0, 0.1); // Lautstärke auf 0, wenn kein Rand berührt wird
+      }
+    }
+
+    class MovingCircle {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.r = 40;
+        this.xSpeed = random(-2, 2);
+        this.ySpeed = random(-2, 2);
+        this.edgeHitCooldown = 0;
+      }
+
+      move() {
+        this.x += this.xSpeed;
+        this.y += this.ySpeed;
+        if (this.edgeHitCooldown > 0) {
+          this.edgeHitCooldown--;
+        }
+      }
+
+      checkEdges(fx, fy) {
+        let hitEdge = false;
+
+        if (this.x - this.r/2 <= 0 || this.x + this.r/2 >= width) {
+          this.xSpeed *= -1;
+          this.x = constrain(this.x, this.r/2, width - this.r/2); // Position korrigieren
+          hitEdge = true;
+        }
+        if (this.y - this.r/2 <= 0 || this.y + this.r/2 >= height) {
+          this.ySpeed *= -1;
+          this.y = constrain(this.y, this.r/2, height - this.r/2); // Position korrigieren
+          hitEdge = true;
+        }
+
+        if (hitEdge && this.edgeHitCooldown === 0 && soundEnabled && fx !== null && fy !== null) {
+          let noteIndex = floor(map(fx, 0, width, 0, notes.length));
+          noteIndex = constrain(noteIndex, 0, notes.length - 1);
+          let frequency = notes[noteIndex];
+
+          let volume = map(fy, 0, height, 1, 0);
+          volume = constrain(volume, 0, 1);
+
+          osc.freq(frequency);
+          osc.amp(volume, 0.1);
+
+          console.log(`🎶 Ton: ${frequency.toFixed(2)} Hz | Lautstärke: ${volume.toFixed(2)}`);
+
+          this.edgeHitCooldown = 15;
+          return true; // Signalisiert Randberührung
+        }
+        return false;
+      }
+
+      display() {
+        fill(0, 100, 255);
+        ellipse(this.x, this.y, this.r);
+      }
+    }
+  </script>
+</body>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Bouncing Circles mit Handtracking-Sound</title>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.2/lib/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.2/lib/addons/p5.sound.min.js"></script>
+  <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
+  <style>
+    body { margin: 0; text-align: center; font-family: sans-serif; }
+    canvas { display: block; margin: 0 auto; }
+  </style>
+</head>
+<body>
+  <h2>Bouncing Circles mit Handtracking-Sound</h2>
+  <button id="soundButton">🎵 Sound starten</button>
+  <p>Bewege deinen Zeigefinger (link/rechts = Tonhöhe, hoch/runter = Lautstärke)<br>Ein Ton wird abgespielt, wenn ein Kreis den Rand berührt.</p>
+
+  <script>
+    let video;
+    let handpose;
+    let predictions = [];
+    let osc;
+    let soundEnabled = false;
+
+    let circles = [];
+    const notes = [
+      261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25,
+      587.33, 659.25, 698.46, 783.99, 880.00, 987.77, 1046.50
+    ];
+
     function setup() {
       createCanvas(640, 480);
 
@@ -147,4 +309,4 @@
     }
   </script>
 </body>
-</html>
+</html> -->
